@@ -15,15 +15,21 @@ const columns = [
   },
 ];
 
+function toObjectMap(list, key){
+    const pairs = list.map(item => [item[key], item]);
+    return Object.fromEntries(pairs);
+}
 
 const App = () => {
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [filtered, setFiltered] = useState(false);
+  const [objectMapEvents, setObjectMapEvents] = useState(null);
   const { error, data: historicalEvents, refetch: loadData, isFetching } = useQuery(['data'], () =>
-      fetch( `/data-history.json`).then(res => res.json())
+      fetch( `/elastic.io/data-history.json`).then(res => res.json())
   ,{
           refetchOnWindowFocus: false,
           enabled: false,
+          onSuccess: (data) => setObjectMapEvents(toObjectMap(data?.data, 'date'))
       }
   )
 
@@ -33,7 +39,7 @@ const App = () => {
 
   const onDateChange = (_, dateString) => {
       if (dateString) {
-          setFilteredEvents(historicalEvents?.data?.filter((obj) => obj.date === dateString))
+          setFilteredEvents([objectMapEvents[dateString]])
           setFiltered(true);
       } else {
           setFilteredEvents([]);
